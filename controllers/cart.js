@@ -1,5 +1,8 @@
 const Cart = require("../models/cart");
 const Product = require("../models/products");
+
+
+
 // Function to handle adding a product to the cart
 async function handleAddToCart(req, res) {
     // Define required fields for the request body
@@ -56,9 +59,6 @@ async function handleAddToCart(req, res) {
     }
 }
 
-
-
-
 // Function to handle fetching all products in the cart for a customer
 async function handleGetAllCartProducts(req, res) {
     const cartId = req.params.cartId;
@@ -66,9 +66,11 @@ async function handleGetAllCartProducts(req, res) {
 
     try {
         const cart = await Cart.findOne({ cartId });
-        if (!cart) {
+        console.log(cart.addedProducts);
+        if (!cart || cart.addedProducts.length == 0) {
             return res.json({ status:"failed", message: 'Cart not found' });
         }
+
 
         const populatedProducts = await Promise.all(cart.addedProducts.map(async (item) => {
             console.log(item.productId);
@@ -107,9 +109,13 @@ async function handleDeleteCartProduct(req, res) {
             return res.status(404).json({status:'failed', message: "Cart not found" });
         }
 
+        if(!cart.addedProducts){
+            return res.status(200).json({status:'failed', message: "Cart is empty" });
+        }
+
         const productIndex = cart.addedProducts.findIndex(product => product.productId === product_id);
         if (productIndex === -1) {
-            return res.status(404).json({status:'failed', message: "Product not found in cart" });
+            return res.status(200).json({status:'failed', message: "Product not found in cart" });
         }
 
         cart.addedProducts.splice(productIndex, 1); // Remove the product from the cart

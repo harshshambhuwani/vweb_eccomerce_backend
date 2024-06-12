@@ -42,7 +42,7 @@ const orderSchema = new mongoose.Schema({
         {
           productId: {
             type: Number,
-            ref: 'Product',
+            ref: 'Products',
             required: true
           },
           adminId:{

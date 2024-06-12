@@ -78,7 +78,7 @@ async function handleGetAllOrdersByAdminId(req, res) {
         ]);
 
         if (!orders.length) {
-            return res.status(404).json({ status:'failed', message: "No orders found" });
+            return res.status(200).json({ status:'failed', message: "No orders found" });
         }
 
         return res.status(200).json({ status: "success", data: orders });
@@ -96,7 +96,7 @@ async function handleAllOrdersByCustomerId(req, res) {
     try {
         const allOrders = await Orders.find({ customerId: customerId });
         if (!allOrders.length) {
-            return res.status(404).json({ status:'failed', message: "No Orders Found" });
+            return res.status(200).json({ status:'failed', message: "No Orders Found" });
         }
         return res.status(200).json({ status: "success", data: allOrders });
     } catch (error) {
@@ -168,7 +168,7 @@ async function handleGetOrder(req, res) {
     try {
         const order = await Orders.findOne({ orderId: order_id });
         if (!order) {
-            return res.status(404).json({ status:'failed', message: "Order not found" });
+            return res.status(200).json({ status:'failed', message: "Order not found" });
         }
         return res.status(200).json({ status: "success", data: order });
     } catch (error) {

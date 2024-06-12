@@ -1,5 +1,5 @@
 const Cart = require("../models/cart");
-
+const Product = require("../models/products");
 // Function to handle adding a product to the cart
 async function handleAddToCart(req, res) {
     // Define required fields for the request body
@@ -56,19 +56,41 @@ async function handleAddToCart(req, res) {
     }
 }
 
+
+
+
 // Function to handle fetching all products in the cart for a customer
 async function handleGetAllCartProducts(req, res) {
-    const customerId = req.params.customerId;
-    const allCartProducts = await Cart.find({ customerId: customerId });
+    const cartId = req.params.cartId;
+    // const allCartProducts = await Cart.find({ cartId: cartId }).populate('addedProducts.productId');
+
     try {
-        if (!allCartProducts) {
-            return res.status(404).json({ status: 'failed', message: "No Data Found" });
+        const cart = await Cart.findOne({ cartId });
+        if (!cart) {
+            return res.json({ status:"failed", message: 'Cart not found' });
         }
-        return res.json({ status: "success", data: allCartProducts });
+
+        const populatedProducts = await Promise.all(cart.addedProducts.map(async (item) => {
+            console.log(item.productId);
+            const product = await Product.findOne({ productId: item.productId });
+            console.log(product);
+            return {
+                ...item._doc,
+                productDetails: product
+            };
+        }));
+
+        return res.json({
+            status:"success",
+            data:{
+                ...cart._doc,
+                addedProducts: populatedProducts
+            }
+        });
     } catch (error) {
-        return res.status(500).json({status:"error", error: "Invalid"})
+        console.error(error);
+        return res.status(400).json({ message: 'Error fetching cart', error });
     }
-    
 }
 
 // Function to handle deleting a product from the cart

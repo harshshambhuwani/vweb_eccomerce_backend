@@ -7,8 +7,8 @@ const adminSchema = new mongoose.Schema({
         unique: true,
     },
     profilePic: {
-        data: Buffer,
-        contentType: String
+        type: String,
+        required: null,
     },
     fullName: {
         type: String,

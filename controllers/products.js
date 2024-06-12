@@ -72,7 +72,7 @@ async function handleGetAllProduct(req, res) {
     try {
         const allDbProducts = await Products.find();
         if (!allDbProducts.length) {
-            return res.status(400).json({ status: 'failed',message: 'No products found' });
+            return res.status(200).json({ status: 'failed',message: 'No products found' });
         }
         return res.json({ status: "success", data: allDbProducts });
     } catch (error) {
@@ -87,7 +87,7 @@ async function handleGetAllProductByAdminId(req, res) {
     try {
         const products = await Products.find({ adminId: adminId });
         if (!products.length) {
-            return res.status(400).json({ status: 'failed',message: 'No products found' });
+            return res.status(200).json({ status: 'failed',message: 'No products found' });
         }
         return res.json({ status: "success", data: products });
     } catch (error) {
@@ -128,7 +128,7 @@ async function handleDeleteProductById(req, res) {
     try {
         const productData = await Products.findOne({ productId: productId });
         if (!productData) {
-            return res.status(404).json({status:'failed', message: "Product not found" });
+            return res.status(200).json({status:'failed', message: "Product not found" });
         }
         await Products.deleteOne({ productId: productId });
         return res.status(200).json({ status: "success", message: "Product successfully deleted" });

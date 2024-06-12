@@ -7,8 +7,8 @@ const customerSchema = new mongoose.Schema({
         unique: true,
     },
     profilePic: {
-        data: Buffer,
-        contentType: String
+        type: String,
+        required: true
     },
     fullName: {
         type: String,

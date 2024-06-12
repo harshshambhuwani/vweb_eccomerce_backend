@@ -1,8 +1,6 @@
 const Admin = require("../models/admin");
 const Customer = require("../models/customer");
-const { v4: uuid } = require("uuid");
-const { getUser, setUser } = require("../service/auth");
-const multer = require("multer");
+const { setUser } = require("../service/auth");
 
 // Handle Customer and Admin Signup
 async function handleSignup(req, res) {
@@ -153,12 +151,14 @@ async function handleUpdateProfile(req, res) {
 
         if (userType === "Admin") {
             
-            updatedUser = await Admin.updateOne( {adminId:user_id, fullName, profilePic: `${req.protocol}://${req.get('host')}${imagePath}`});
-            const user = await Admin.find({adminId:user_id})
+            updatedUser = await Admin.findOneAndUpdate( {adminId:user_id}, {fullName:fullName, profilePic: `${req.protocol}://${req.get('host')}${imagePath}`},{ new: true, runValidators: true });
+            if (!updatedUser) {
+                return res.status(400).json({ status: 'failed',message: 'Not found' });
+            }
             if (uploadedImage) {
-                return res.status(200).json({ message: "Profile updated successfully", imagePath: `${req.protocol}://${req.get('host')}${imagePath}`, data: user });
+                return res.status(200).json({ message: "Profile updated successfully", imagePath: `${req.protocol}://${req.get('host')}${imagePath}`, data: updatedUser });
             } else {
-                return res.status(200).json({ message: "Profile updated successfully", data: user });
+                return res.status(200).json({ message: "Profile updated successfully", data: updatedUser });
             }
         } else if (userType === "Customer") {
             

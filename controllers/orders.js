@@ -100,8 +100,9 @@ async function handleAllOrdersByCustomerId(req, res) {
             return res.status(200).json({ status: 'failed', message: "Order not found" });
         }
         
-        // Fetch product details for each product in ordered_products for all orders
-        const allProductIds = orders.map(order => order.orderedProducts.map(op => op.productId));
+        // Fetch product details for each product in orderedProducts for all orders
+        const allProductIds = orders.flatMap(order => order.orderedProducts.map(op => op.productId));
+        
         const products = await Product.find({ productId: { $in: allProductIds.map(Number) } }).lean();
         
         // Create a map of productId to product details
@@ -110,14 +111,14 @@ async function handleAllOrdersByCustomerId(req, res) {
             return acc;
         }, {});
         
-        // Add product details to each ordered_product for each order
+        // Add product details to each orderedProduct for each order
         orders.forEach(order => {
             order.orderedProducts = order.orderedProducts.map(op => ({
                 ...op,
                 productDetails: productMap[op.productId] || null
-            }))
-        });
-
+            }));
+        });        
+        
         return res.status(200).json({ status: "success", data: orders });
     } catch (error) {
         console.error("Error fetching orders by customer ID:", error);

@@ -1,4 +1,5 @@
 const Orders = require("../models/orders");
+const Product = require("../models/products");
 
 // Function to handle getting all orders by admin ID
 async function handleGetAllOrdersByAdminId(req, res) {
@@ -94,11 +95,30 @@ async function handleAllOrdersByCustomerId(req, res) {
     const customerId = req.params.customerId;
 
     try {
-        const allOrders = await Orders.find({ customerId: customerId });
-        if (!allOrders.length) {
-            return res.status(200).json({ status:'failed', message: "No Orders Found" });
+        const orders = await Orders.find({ customerId: customerId }).lean();
+        if (!orders || orders.length === 0) {
+            return res.status(200).json({ status: 'failed', message: "Order not found" });
         }
-        return res.status(200).json({ status: "success", data: allOrders });
+        
+        // Fetch product details for each product in ordered_products for all orders
+        const allProductIds = orders.map(order => order.orderedProducts.map(op => op.productId));
+        const products = await Product.find({ productId: { $in: allProductIds.map(Number) } }).lean();
+        
+        // Create a map of productId to product details
+        const productMap = products.reduce((acc, product) => {
+            acc[product.productId] = product;
+            return acc;
+        }, {});
+        
+        // Add product details to each ordered_product for each order
+        orders.forEach(order => {
+            order.orderedProducts = order.orderedProducts.map(op => ({
+                ...op,
+                productDetails: productMap[op.productId] || null
+            }))
+        });
+
+        return res.status(200).json({ status: "success", data: orders });
     } catch (error) {
         console.error("Error fetching orders by customer ID:", error);
         return res.status(500).json({ status:"error", error: "Internal server error" });
@@ -108,7 +128,7 @@ async function handleAllOrdersByCustomerId(req, res) {
 // Function to handle creating a new order
 async function handleCreateOrder(req, res) {
     const body = req.body;
-    const requiredFields = ['customer_id', 'customer_name', 'customer_address', 'city', 'state', 'country', 'pin_code', 'mobile_number', 'cart_products'];
+    const requiredFields = ['customer_id', 'customer_name', 'customer_address', 'city', 'state', 'country', 'pin_code', 'mobile_number', 'cart_products','total_items','total_amount','delivery_date'];
 
     // Check for missing fields in the request body
     const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -132,9 +152,9 @@ async function handleCreateOrder(req, res) {
             mobileNo: body.mobile_number,
             orderedProducts: body.cart_products,
             orderStatus: "Pending",
-            totalItems: body.cart_products.length,
-            totalAmount: 0, // Update this field with the correct total amount calculation
-            deliveryDate: "2024-12-04",
+            totalItems: body.total_items,
+            totalAmount: body.total_amount, // Update this field with the correct total amount calculation
+            deliveryDate: body.delivery_date,
             deliveryStatus: "Pending"
         });
 

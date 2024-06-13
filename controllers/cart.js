@@ -64,11 +64,16 @@ async function handleGetAllCartProducts(req, res) {
     const cartId = req.params.cartId;
     // const allCartProducts = await Cart.find({ cartId: cartId }).populate('addedProducts.productId');
 
+    
     try {
         const cart = await Cart.findOne({ cartId });
-        console.log(cart.addedProducts);
-        if (!cart || cart.addedProducts.length == 0) {
-            return res.json({ status:"failed", message: 'Cart not found' });
+        if (!cart) {
+            return res.json({ status: "failed", message: 'Cart not found' });
+        }
+    
+        // Check if addedProducts property exists and has items
+        if (!cart.addedProducts || cart.addedProducts.length === 0) {
+            return res.json({ status: "failed", message: 'No products added to cart' });
         }
 
 

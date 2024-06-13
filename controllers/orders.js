@@ -171,9 +171,9 @@ async function handleOrderStatus(req, res) {
     const { order_id, admin_id, order_status } = req.body;
 
     try {
-        const order = await Orders.updateOne({ orderId: order_id }, { orderStatus: order_status });
-        if (!order.nModified) {
-            return res.status(404).json({ status:'failed', message: "Order not found or status not updated" });
+        const order = await Orders.findOneAndUpdate({ orderId: order_id }, { orderStatus: order_status });
+        if (!order) {
+            return res.status(200).json({ status:'failed', message: "Order not found or status not updated" });
         }
         return res.json({ status: "success", message: `Order has been ${order_status} successfully` });
     } catch (error) {

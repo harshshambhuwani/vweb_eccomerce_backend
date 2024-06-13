@@ -66,12 +66,12 @@ app.post('/api/products/add-product',upload.fields([{ name: 'products_images', m
 //update profile
 app.patch('/api/profile/update-profile',upload.single('profile_image'),checkAuth,handleUpdateProfile,express.static('uploads'))
 
-// app.get('/uploads/:imageName',
-//   (req, res) => {
-//     const image = req.params.imageName
-//     res.sendFile(path.join(__dirname, `./uploads/${image}`));
-//   }
-// )
+app.get('/uploads/:imageName',
+  (req, res) => {
+    const image = req.params.imageName
+    res.sendFile(path.join(__dirname, `./uploads/${image}`));
+  }
+)
 
 
 

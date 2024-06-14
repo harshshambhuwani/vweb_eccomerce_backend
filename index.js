@@ -39,6 +39,7 @@ app.use('/api/products',checkAuth, productRouter);
 app.use('/api/order',checkAuth, orderRouter);
 
 
+
 // Multer configuration for file upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -53,18 +54,43 @@ const storage = multer.diskStorage({
   }
 });
 
+const fileFilter = (req, file, cb) => {
+  if (req.files && req.files['products_images'] && req.files['products_images'].length >= 5) {
+    return cb(new Error('Cannot upload more than 5 files'), false);
+  }
+  cb(null, true);
+};
+
 // Initialize multer middleware
-const upload = multer({storage});
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 1000000 }, // 1MB file size limit
+  fileFilter: fileFilter
+}).fields([{ name: 'products_images', maxCount: 5 }]);
+
+const profileUpload = multer({storage});
+
+// Middleware to handle errors from multer
+const uploadErrorHandler = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    // Multer-specific errors
+    return res.status(400).json({ status: 'failed', message: err.message });
+  } else if (err) {
+    // Other errors
+    return res.status(400).json({ status: 'failed', message: err.message });
+  }
+  next();
+};
 
 
 
 
 // add product
-app.post('/api/products/add-product',upload.fields([{ name: 'products_images', maxCount: 5 }]),handleCreateNewProduct,express.static('uploads'))
+app.post('/api/products/add-product',upload,uploadErrorHandler,handleCreateNewProduct,express.static('uploads'))
 
 
 //update profile
-app.patch('/api/profile/update-profile',upload.single('profile_image'),checkAuth,handleUpdateProfile,express.static('uploads'))
+app.patch('/api/profile/update-profile',profileUpload.single('profile_image'),checkAuth,handleUpdateProfile,express.static('uploads'))
 
 app.get('/uploads/:imageName',
   (req, res) => {

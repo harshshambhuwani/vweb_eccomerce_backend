@@ -6,7 +6,7 @@ const {handleAddToCart,
     handleDeleteCart} = require("../controllers/cart");
 const cartRouter = express.Router();
 
-cartRouter.route("/:cartId").get(handleGetAllCartProducts)
+cartRouter.route("/:customerId").get(handleGetAllCartProducts)
 cartRouter.route("/add-to-cart").post(handleAddToCart)
 cartRouter.route("/delete-cart-products").delete(handleDeleteCartProduct)
 cartRouter.route("/delete-cart").delete(handleDeleteCart)

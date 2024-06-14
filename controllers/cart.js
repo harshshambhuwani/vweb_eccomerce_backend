@@ -61,12 +61,12 @@ async function handleAddToCart(req, res) {
 
 // Function to handle fetching all products in the cart for a customer
 async function handleGetAllCartProducts(req, res) {
-    const cartId = req.params.cartId;
+    const customerId = req.params.customerId;
     // const allCartProducts = await Cart.find({ cartId: cartId }).populate('addedProducts.productId');
 
     
     try {
-        const cart = await Cart.findOne({ cartId });
+        const cart = await Cart.findOne({ customerId: Number(customerId) });
         if (!cart) {
             return res.json({ status: "failed", message: 'Cart not found' });
         }

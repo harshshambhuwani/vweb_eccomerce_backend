@@ -64,7 +64,6 @@ const fileFilter = (req, file, cb) => {
 // Initialize multer middleware
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 1000000 }, // 1MB file size limit
   fileFilter: fileFilter
 }).fields([{ name: 'products_images', maxCount: 5 }]);
 

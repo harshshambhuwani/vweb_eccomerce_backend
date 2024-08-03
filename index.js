@@ -3,6 +3,7 @@ const multer = require("multer");
 const { connectMongoDb } = require("./connection");
 const authRouter = require("./routes/auth");
 const productRouter = require("./routes/products");
+const collectionRouter = require("./routes/collections");
 const cartRouter = require("./routes/cart");
 const orderRouter = require("./routes/orders");
 const {checkAuth} = require('./middlewares/auth');
@@ -15,7 +16,7 @@ const app = express();
 const PORT = 8000;
 
 // Connection
-connectMongoDb('mongodb+srv://harshadharsh07:vz8RBN33IZ9bWJUA@hgscluster.1hlddmf.mongodb.net/vweb-ecommerce?retryWrites=true&w=majority')
+connectMongoDb('mongodb+srv://harshadharsh07:vz8RBN33IZ9bWJUA@hgscluster.1hlddmf.mongodb.net/vweb-ecommerce_test?retryWrites=true&w=majority')
   .then(() => console.log('MongoDb connected'))
   .catch(err => console.error('MongoDb connection error:', err));
 
@@ -33,7 +34,10 @@ app.use('/api', authRouter);
 app.use('/api/cart',checkAuth, cartRouter);
 
 // products
-app.use('/api/products',checkAuth, productRouter);
+app.use('/api/products', productRouter);
+
+// collections
+app.use('/api/collections', collectionRouter);
 
 // orders
 app.use('/api/order',checkAuth, orderRouter);
@@ -53,6 +57,7 @@ const storage = multer.diskStorage({
       return cb(null, `${Date.now()}_${file.originalname}`)
   }
 });
+
 
 const fileFilter = (req, file, cb) => {
   if (req.files && req.files['products_images'] && req.files['products_images'].length >= 5) {

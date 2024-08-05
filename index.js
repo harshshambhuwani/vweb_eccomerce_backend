@@ -1,5 +1,6 @@
 const express = require("express");
 const multer = require("multer");
+const cors = require('cors');
 const { connectMongoDb } = require("./connection");
 const authRouter = require("./routes/auth");
 const productRouter = require("./routes/products");
@@ -23,6 +24,10 @@ connectMongoDb('mongodb+srv://harshadharsh07:vz8RBN33IZ9bWJUA@hgscluster.1hlddmf
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cors({
+  origin: '*',
+  allowedHeaders: 'X-Requested-With, Content-Type, Authorization',
+})); 
 // app.use(logReqRes("log.txt"));
 
 // Routes

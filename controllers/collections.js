@@ -1,18 +1,3 @@
-// "id": 484360356157,
-// "title": "2 - 7 Years Boy",
-// "handle": "2-7-years",
-// "description": "",
-// "published_at": "2024-04-04T03:41:00-07:00",
-// "updated_at": "2024-04-25T06:38:17-07:00",
-// "image": null || 
-// {
-    //     "id": 1733321425213,
-    //     "created_at": "2023-02-02T05:54:27-08:00",
-    //     "src": "https://cdn.shopify.com/s/files/1/0681/2794/9117/collections/b1.png?v=1675346068",
-    //     "alt": null
-    //   },
-// "products_count": 0
-
 
 const Collections = require("../models/collections");
 
@@ -23,7 +8,7 @@ async function handleCreateNewCollection(req, res) {
     console.log(body); 
     // console.log(images);
     
-    const requiredFields = ['admin_id', 'title', 'handle', 'category', 'description'];
+    const requiredFields = ['admin_id', 'title', 'handle', 'description'];
 
     // Check for missing fields in the request body
     const missingFields = requiredFields.filter(field => !body[field]);
@@ -33,11 +18,11 @@ async function handleCreateNewCollection(req, res) {
 
     try {
         const allCollections = await Collections.find({}).sort({ collectionId: -1 }).lean();
-        const CollectionId = allCollections.length > 0 ? allCollections[0].collectionId + 1 : 1;
+        const CollectionId = allCollections.length > 0 ? Number(allCollections[0].collectionId) + 1 : 1;
 
-            if (!Array.isArray(images.Collections_images) || images.Collections_images.length === 0) {
-                return res.status(400).json({ status: 'failed',message: 'No files were uploaded.' });
-            }
+            // if (!Array.isArray(images.Collections_images) || images.Collections_images.length === 0) {
+            //     return res.status(400).json({ status: 'failed',message: 'No files were uploaded.' });
+            // }
         
             // const imageUrls = [];
             // images.Collections_images.forEach(file => {
@@ -52,10 +37,12 @@ async function handleCreateNewCollection(req, res) {
                                   "Out of Stock";
 
         const result = await Collections.create({
-            collectionId: CollectionId,
+            collectionId: String(CollectionId),
             adminId: body.admin_id,
             title: body.title,
+            handle:body.handle,
             description: body.description,
+            
         });
 
         return res.status(201).json({ status: 'success', message: "Collection created successfully", data: result });
@@ -94,12 +81,31 @@ async function handleGetAllCollectionByAdminId(req, res) {
     }
 }
 
+// Function to handle fetching all Collections
+async function handleGetCollectionProducts(req, res) {
+    
+    const collectionId = req.params.collectionId;
+
+    try {
+        // Find the collection and populate the products field
+        const collection = await Collections.findOne({ collectionId })
+            .populate('products');
+
+        if (!collection) {
+            return res.status(404).json({ status: 'failed', message: 'No Collections found' });
+        }
+        await collection.save();
+        return res.json({ status: "success",total_products:collection.products_count, data: collection.products });
+    } catch (error) {
+        console.error("Error fetching Collections by collection ID:", error);
+        return res.status(500).json({ status: "error", error: "Internal server error" });
+    }
+}
+
 // Function to handle updating a Collection by ID
 async function handleUpdateCollectionById(req, res) {
     const body = req.body;
-    const requiredFields = ['Collection_id', 'admin_id', 'title', 'description', 'category', 'price', 'discount_precentage', 
-                            'stocks', 'brand', 'sku', 'weight', 'height', 'width', 'length', 'warranty', 
-                            'shipping_info', 'return_policy'];
+    const requiredFields = ['collection_id', 'admin_id', 'title', 'handle','description',];
 
     // Check for missing fields in the request body
     const missingFields = requiredFields.filter(field => !body[field]);
@@ -108,10 +114,13 @@ async function handleUpdateCollectionById(req, res) {
     }
 
     try {
+        
         const Collection = await Collections.findOneAndUpdate({ collectionId: body.collection_id }, body, { new: true, runValidators: true });
+        
         if (!Collection) {
             return res.status(400).json({ status: 'failed',message: 'Collection not found' });
         }
+        await Collection.save();
         return res.status(200).json({ status: 'success',message: "Collection updated successfully", data: Collection });
     } catch (error) {
         console.error("Error updating Collection:", error);
@@ -121,7 +130,7 @@ async function handleUpdateCollectionById(req, res) {
 
 // Function to handle deleting a Collection by ID
 async function handleDeleteCollectionById(req, res) {
-    const CollectionId = req.params.CollectionId;
+    const CollectionId = req.params.collectionId;
 
     try {
         const CollectionData = await Collections.findOne({ collectionId: CollectionId });
@@ -136,10 +145,29 @@ async function handleDeleteCollectionById(req, res) {
     }
 }
 
+async function handleremoveProductFromCollection(req, res) {
+    const { collectionId, productId } = req.params;
+
+    try {
+        const collection = await Collections.findOne({ collectionId });
+        if (!collection) {
+            return res.status(404).json({ status: 'failed', message: 'Collection not found' });
+        }
+        collection.products.pull(productId);
+        await collection.save(); // This will trigger the pre-save middleware
+
+        return res.status(200).json({ status: 'success', message: 'Product successfully removed from collection'});
+    } catch (error) {
+        console.error('Error removing product from collection:', error);
+        return res.status(500).json({ status: 'error', message: 'Internal server error' });
+    }
+}
+
 module.exports = {
     handleCreateNewCollection,
     handleGetAllCollection,
     handleGetAllCollectionByAdminId,
     handleUpdateCollectionById,
-    handleDeleteCollectionById
+    handleDeleteCollectionById,
+    handleGetCollectionProducts,handleremoveProductFromCollection
 };

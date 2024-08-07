@@ -81,6 +81,26 @@ async function handleGetAllCollectionByAdminId(req, res) {
     }
 }
 
+// Function to handle fetching Collection 
+async function handleGetCollection(req, res) {
+    const collectionId = req.params.collectionId;
+
+    try {
+        // Find the collection and populate the products field
+        const collection = await Collections.findOne({ collectionId })
+            .populate('products');
+
+        if (!collection) {
+            return res.status(404).json({ status: 'failed', message: 'No Collections found' });
+        }
+        // await collection.save();
+        return res.json({ status: "success",total_products:collection.products_count, data: collection });
+    } catch (error) {
+        console.error("Error fetching Collections by collection ID:", error);
+        return res.status(500).json({ status: "error", error: "Internal server error" });
+    }
+}
+
 // Function to handle fetching all Collections
 async function handleGetCollectionProducts(req, res) {
     
@@ -169,5 +189,6 @@ module.exports = {
     handleGetAllCollectionByAdminId,
     handleUpdateCollectionById,
     handleDeleteCollectionById,
-    handleGetCollectionProducts,handleremoveProductFromCollection
+    handleGetCollectionProducts,handleremoveProductFromCollection,
+    handleGetCollection
 };

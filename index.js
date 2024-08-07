@@ -35,6 +35,7 @@ app.use(cors({
 // login - signup - profile 
 app.use('/api', authRouter);
 
+
 //cart
 app.use('/api/cart',checkAuth, cartRouter);
 

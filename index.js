@@ -14,10 +14,10 @@ const path = require("path");
 
 
 const app = express();
-const PORT = 8000;
+const PORT = 8083;
 
 // Connection
-connectMongoDb('mongodb+srv://harshadharsh07:vz8RBN33IZ9bWJUA@hgscluster.1hlddmf.mongodb.net/vweb-ecommerce_test?retryWrites=true&w=majority')
+connectMongoDb('mongodb+srv://harshadharsh07:vz8RBN33IZ9bWJUA@hgscluster.1hlddmf.mongodb.net/vweb-ecommerce?retryWrites=true&w=majority')
   .then(() => console.log('MongoDb connected'))
   .catch(err => console.error('MongoDb connection error:', err));
 

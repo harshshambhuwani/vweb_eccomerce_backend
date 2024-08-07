@@ -66,6 +66,23 @@ async function handleGetAllCollection(req, res) {
     }
 }
 
+// Function to handle fetching all Collections
+async function handleGetAllCollectionWithProducts(req, res) {
+    try {
+        const allDbCollections = await Collections.find().populate('products');
+        if (!allDbCollections.length) {
+            return res.status(200).json({ status: 'failed',message: 'No Collections found' });
+        }
+        return res.json({ status: "success", data: allDbCollections });
+    } catch (error) {
+        console.error("Error fetching Collections:", error);
+        return res.status(500).json({ status:"error", error: "Internal server error" });
+    }
+}
+
+
+
+
 // Function to handle fetching all Collections by admin ID
 async function handleGetAllCollectionByAdminId(req, res) {
     const adminId = req.params.adminId;
@@ -190,5 +207,6 @@ module.exports = {
     handleUpdateCollectionById,
     handleDeleteCollectionById,
     handleGetCollectionProducts,handleremoveProductFromCollection,
-    handleGetCollection
+    handleGetCollection,
+    handleGetAllCollectionWithProducts
 };

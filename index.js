@@ -9,7 +9,7 @@ const cartRouter = require("./routes/cart");
 const orderRouter = require("./routes/orders");
 const {checkAuth} = require('./middlewares/auth');
 const {handleUpdateProfile} = require("./controllers/auth");
-const {handleCreateNewProduct} = require("./controllers/products");
+const {handleCreateNewProduct,handleUpdateProductById} = require("./controllers/products");
 const path = require("path");
 
 
@@ -97,6 +97,9 @@ const uploadErrorHandler = (err, req, res, next) => {
 
 // add product
 app.post('/api/products/add-product',upload,uploadErrorHandler,handleCreateNewProduct,express.static('uploads'))
+
+// update product
+app.post('/api/products/update-product', upload, uploadErrorHandler, handleUpdateProductById, express.static('uploads'));
 
 
 //update profile

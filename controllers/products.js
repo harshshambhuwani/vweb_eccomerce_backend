@@ -13,7 +13,7 @@ async function handleCreateNewProduct(req, res) {
 
     // Check for missing fields in the request body
     const missingFields = requiredFields.filter(field => !body[field]);
-    if (missingFields.length > 0) {
+    if (missingFields.length > 0) { 
         return res.status(400).json({ status: 'failed',message: 'Missing required fields: ' + missingFields.join(', ') });
     }
 
@@ -99,9 +99,11 @@ async function handleGetAllProductByAdminId(req, res) {
 // Function to handle updating a product by ID
 async function handleUpdateProductById(req, res) {
     const body = req.body;
+    const images = req.files;
+
     const requiredFields = ['product_id', 'admin_id', 'title', 'description', 'category', 'price', 'discount_precentage', 
                             'stocks', 'brand', 'sku', 'weight', 'height', 'width', 'length', 'warranty', 
-                            'shipping_info', 'return_policy'];
+                            'shipping_info', 'return_policy','imageUrls'];
 
     // Check for missing fields in the request body
     const missingFields = requiredFields.filter(field => !body[field]);
@@ -110,14 +112,52 @@ async function handleUpdateProductById(req, res) {
     }
 
     try {
-        const product = await Products.findOneAndUpdate({ productId: body.product_id }, body, { new: true, runValidators: true });
+        const product = await Products.findOne({ productId: body.product_id });
         if (!product) {
             return res.status(400).json({ status: 'failed',message: 'Product not found' });
         }
-        return res.status(200).json({ status: 'success',message: "Product updated successfully", data: product });
+
+        // Update product fields
+        product.adminId = body.admin_id;
+        product.title = body.title;
+        product.description = body.description;
+        product.category = body.category;
+        product.price = body.price;
+        product.discountPercentage = body.discount_precentage;
+        product.stocks = body.stocks;
+        product.brand = body.brand;
+        product.sku = body.sku;
+        product.weight = body.weight;
+        product.height = body.height;
+        product.width = body.width;
+        product.length = body.length;
+        product.warranty = body.warranty;
+        product.shippingInformation = body.shipping_info;
+        product.returnPolicy = body.return_policy;
+        product.imageUrls = body.imageUrls;
+
+        // Update availability status
+        product.availabilityStatus = body.stocks < 15 ? "Few in stocks" : 
+                                      body.stocks > 100 ? "In Stock" : 
+                                      body.stocks <= 100 ? "Low In Stock" : 
+                                      "Out of Stock";
+
+        // Handle new image uploads if provided
+        if (images && Array.isArray(images.products_images) && images.products_images.length > 0) {
+            const imageUrls = images.products_images.map(file => {
+                return `${req.protocol}://${req.get('host')}/uploads/${file.filename}`;
+            });
+            product.imageUrls = imageUrls;
+            product.thumbnail = imageUrls[0];
+        }
+
+        // Save the updated product
+        const updatedProduct = await product.save();
+
+        return res.status(200).json({ status: 'success',message: "Product updated successfully", data: updatedProduct });
     } catch (error) {
         console.error("Error updating product:", error);
-        return res.status(500).json({ status:"error", error: "Internal server error" });
+        return res.status(500).json({ status: "error", error: "Internal server error" });
     }
 }
 
